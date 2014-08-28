@@ -1,0 +1,8 @@
+*.DS_*
+*Thumbs.db*
+.idea
+*.iml
+node_modules
+dist
+lib
+

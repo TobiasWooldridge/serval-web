@@ -1,0 +1,10 @@
+.conversations, .conversation {
+    background: rgba(240, 240, 245, 0.2);
+    border: 1px solid #ddd;
+    padding: 10px 20px;
+}
+
+.message .direction {
+    font-weight: normal;
+    opacity: 0.7;
+}
