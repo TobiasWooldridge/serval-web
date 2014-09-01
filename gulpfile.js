@@ -6,7 +6,10 @@ var gulp = require('gulp'),
     imagemin = require('gulp-imagemin'),
     jshint = require('gulp-jshint'),
     react = require('gulp-react'),
-    connect = require('gulp-connect');
+    connect = require('gulp-connect'),
+    gutil = require('gulp-util'),
+    plumber = require('gulp-plumber'),
+    notify = require('gulp-notify');
 
 gulp.task('styles', function() {
     return gulp.src('src/css/*.*ss')
@@ -32,8 +35,17 @@ gulp.task('vendors', function() {
         .pipe(connect.reload());
 });
 
+var onError = function (err) {  
+  gutil.beep();
+  console.log(err.message);
+  notify(err.message);
+};
+
 gulp.task('scripts', function() {
     return gulp.src('src/js/**/*.js*')
+        .pipe(plumber({
+          errorHandler: onError
+        }))
         .pipe(react({ harmony : true }))
         .pipe(jshint('.jshintrc'))
         .pipe(jshint.reporter('default'))

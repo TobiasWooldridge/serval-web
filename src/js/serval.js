@@ -27,6 +27,51 @@ var $serval = (function() {
         return records;
     }
 
+    class Message {
+        constructor(obj) {
+            this.type = obj.type;
+            this.my_sid = obj.my_sid;
+            this.their_sid = obj.their_sid;
+            this.offset = obj.offset;
+            this.token = obj.token;
+            this.text = obj.text;
+            this.delivered = obj.delivered;
+            this.read = obj.read;
+            this.timestamp = obj.timestamp;
+            this.ack_offset = obj.ack_offset;
+            this.key = obj.token;
+        }
+
+        is_message() {
+            return this.type == "<" || this.type == ">";
+        }
+
+        sender() {
+            if (this.type == "<") {
+                return this.my_sid;
+            }
+            else if (this.type == ">") {
+                return this.their_sid;
+            }
+            return undefined;
+        }
+        
+        receiver() {
+            if (this.type == "<") {
+                return this.their_sid;
+            }
+            else if (this.type == ">") {
+                return this.my_sid;
+            }
+            return undefined;
+        }
+
+        status() {
+            return (this.read ? "Read" : (this.delivered ? "Delivered" : "Sending"));
+        }
+    }
+
+
     var self = {};
 
     self.getIdentities = function(callback) {
@@ -43,7 +88,7 @@ var $serval = (function() {
 
     self.getConversation = function(mySid, theirSid, callback) {
         $http.getJson("http://localhost:4110/restful/meshms/" + escape(mySid) + "/"  + escape(theirSid) + "/messagelist.json", function (status, response) {
-            callback(assembleServalJson(response));
+            callback(assembleServalJson(response).reverse().map(x => new Message(x)));
         });
     };
 

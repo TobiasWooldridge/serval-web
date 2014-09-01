@@ -33,17 +33,19 @@ var $http = (function() {
             }
         };
 
-        var username = 'demouser';
-        var password = 'demopassword';
+    var username = 'demouser';
+    var password = 'demopassword';
 
-        var params = Object.keys(data).map(function(key) {
-          return key + '=' + encodeURIComponent(data[key]);
-        }).join('&');
+    var params = new FormData();
+    for (var key in data) {
+    	if (data.hasOwnProperty(key)) {
+    		params.append(key, new Blob([data[key]], {type: "text/plain; charset=utf-8"}));
+    	}
+    }
 
-        xhr.open("POST", address);
-        xhr.setRequestHeader('Content-Type', 'type=text/plain;charset=utf-8');
-        xhr.setRequestHeader('Authorization', 'Basic ' + btoa(username + ":" + password));
-        xhr.send(params);
+    xhr.open("POST", address, true);
+    xhr.setRequestHeader('Authorization', 'Basic ' + btoa(username + ":" + password));
+    xhr.send(params);
     };
 
     return http;
