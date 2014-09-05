@@ -55,7 +55,7 @@ var $serval = (function() {
             }
             return undefined;
         }
-        
+
         receiver() {
             if (this.type == "<") {
                 return this.their_sid;
@@ -74,8 +74,15 @@ var $serval = (function() {
 
     var self = {};
 
+    self.getPeers = function(callback) {
+        $http.getJson("http://localhost:4110/restful/mesh/routablepeers.json", function (status, response) {
+            callback(assembleServalJson(response));
+        });
+    };
+
+
     self.getIdentities = function(callback) {
-        $http.getJson("http://localhost:4110/restful/aardvark/identities.json", function (status, response) {
+        $http.getJson("http://localhost:4110/restful/keyring/identities.json", function (status, response) {
             callback(assembleServalJson(response));
         });
     };

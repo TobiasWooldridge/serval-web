@@ -1,11 +1,61 @@
-var Contact = React.createClass({
-    openContact: function() {
-        
+var ContactList = React.createClass({
+    retrieveContacts: function() {
+        $serval.getPeers(function(result) {
+            if (this.isMounted()) {
+                this.setState({
+                    contacts: result
+                });
+            }
+        }.bind(this));
+    },
+    getInitialState: function() {
+        return { contacts: [] };
+    },
+    componentDidMount: function() {
+        this.retrieveContacts();
+        this.timer = setInterval(this.retrieveContacts, 2000);
+    },
+    componentWillUnmount: function() {
+        clearInterval(this.timer);
     },
     render: function() {
-           return (
-               <a ref="name" title={ this.props.sid } onClick={ this.openContact } className="contact">{ this.props.sid.slice(0,6) }</a>
-           );
+        var contactNodes = this.state.contacts.map(function (contact) {
+            return <li key={ "contact-" + contact.sid }><Contact my_sid={ this.props.sid } their_sid={ contact.sid } /></li>;
+          }.bind(this));
+
+        return (
+            <div className="contactList">
+                <h2>Contact List</h2>
+                <ul>{ contactNodes }</ul>
+            </div>
+        );
+    }
+});
+
+var Contact = React.createClass({
+    handleRename: function() {
+        if (this.isMounted()) {
+            this.setState({
+                name: "Mooo"
+            });
+        }
+    },
+    startConversation: function() {
+        $serval.sendMessage(this.props.my_sid, this.props.their_sid, "Hi!", function() {});
+    },
+    getInitialState: function() {
+        return { name: "Unknown" };
+    },
+    render: function() {
+        return (
+            <div className="contact">
+                <span ref="name" title={ this.props.their_sid } onClick={ this.openContact } className="contact">
+                    { this.state.name } ({ this.props.their_sid.slice(0,6) })
+                </span>
+                <input type="button" value="Rename" onClick={this.handleRename} />
+                <input type="button" value="Start Conversation" onClick={this.startConversation} />
+            </div>
+        );
     }
 });
 
@@ -38,7 +88,6 @@ var Message = React.createClass({
         if (!this.props.message.is_message()) return <div></div>;
         else return (
             <div className={ className }>
-                <span className="sender"><Contact sid={ this.props.message.sender() } /></span> { this.props.message.text }
                 <span className="delivery status">{ this.props.message.status() }</span>
             </div>
         );
@@ -47,7 +96,7 @@ var Message = React.createClass({
 
 var Conversation = React.createClass({
     retrieveMessages: function() {
-        $serval.getConversation(this.props.conversation.my_sid, this.props.conversation.their_sid, function(result) {
+        $serval.getConversation(this.props.conversation.my_sid, this.props.conversation.theirSid, function(result) {
             if (this.isMounted()) {
                 this.setState({
                     messages: result,
@@ -93,7 +142,7 @@ var Conversation = React.createClass({
 
         return (
             <div className="conversation">
-                <Contact sid={ this.props.conversation.their_sid} />
+                <Contact my_sid={ this.props.conversation.my_sid} their_sid={ this.props.conversation.their_sid} />
 
                 <div className="messages" ref="messages"><ul>{ messageNodes }</ul></div>
 
@@ -136,6 +185,7 @@ var Identity = React.createClass({
             return (
                 <div className="identity">
                     <h1>Your Identity: { this.props.identity.name || this.props.identity.sid.slice(0,6) + "..." }</h1>
+                    <ContactList sid={ this.props.identity.sid } />
                     <Conversations sid={ this.props.identity.sid } />
                 </div>
             );
@@ -159,7 +209,9 @@ var Identities = React.createClass({
 
      render: function() {
             var identityNodes = this.state.identities.map(function (identity) {
-                return <Identity key={ identity.sid } identity={ identity } />;
+                return (
+                    <Identity key={ identity.sid } identity={ identity } />
+                );
               });
 
             return (
@@ -172,5 +224,5 @@ var Identities = React.createClass({
 
 React.renderComponent(
 <Identities />,
-     document.getElementById('messages')
+     document.getElementById('identities')
 );
