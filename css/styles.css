@@ -1,0 +1,62 @@
+.contactList, .conversations, .conversation {
+    background: rgba(240, 240, 245, 0.2);
+    border: 1px solid #ddd;
+    padding: 10px 20px;
+}
+
+.conversations > ul {
+	list-style: none inside;
+	padding: 0;
+	margin: 0;
+}
+
+.conversations input[type=button] {
+	display: none;
+}
+
+.conversation .messages {
+	max-height: 200px;
+	overflow: scroll;
+	background: #fff;
+	border: 1px solid #ddd;
+}
+
+.conversation .messages > ul {
+	list-style: none inside;
+	padding: 0;
+	margin: 0;
+}
+
+.conversation .messages, .conversation input {
+	font-size: 0.9em;
+}
+
+
+.message.sending {
+	background: #FAFAFA;
+}
+.message .direction {
+    font-weight: normal;
+    opacity: 0.7;
+}
+
+.message .status {
+	font-size: 0.7em;
+	text-transform: lowercase;
+	display: inline-block;
+	margin: 0 1em;
+	padding: 0.1em 0.2em;
+	float: right;
+	font: sans-serif;
+	opacity: 0.5;
+}
+.delivered .status.delivery {
+	background: #EFD;
+}
+.sending .status.delivery {
+	background: #FFD;
+}
+
+.contact .name {
+	font-weight: bold;
+}
