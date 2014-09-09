@@ -25,7 +25,7 @@ var ContactList = React.createClass({
 
         return (
             <div className="contactList">
-                <h2>Contact List</h2>
+                <h2>Contact List</h2>       
                 <ul>{ contactNodes }</ul>
             </div>
         );
@@ -40,21 +40,25 @@ var Contact = React.createClass({
             });
         }
     },
-    startConversation: function() {
-        $serval.sendMessage(this.props.my_sid, this.props.their_sid, "Hi!", function() {});
+    sayHi: function() {
+        $serval.sendMessage(this.props.their_sid, "Hi!", function() {});
     },
     getInitialState: function() {
-        return { name: "Unknown" };
+        return {
+            name: "Unknown",
+            sid: this.props.their_sid
+        };
     },
     render: function() {
         return (
-            <div className="contact">
-                <span ref="name" title={ this.props.their_sid } onClick={ this.openContact } className="contact">
-                    { this.state.name } ({ this.props.their_sid.slice(0,6) })
+            <span className="contact">
+                <span className="id">
+                    <span ref="sid" onClick={ this.openContact } className="sid"  title={ this.state.sid }><span>{ this.state.sid }</span></span>
+                    <span ref="name" onClick={ this.openContact } className="name"> { this.state.name }</span>
                 </span>
-                <input type="button" value="Rename" onClick={this.handleRename} />
-                <input type="button" value="Start Conversation" onClick={this.startConversation} />
-            </div>
+                <input type="button" value="Rename" className="rename" onClick={this.handleRename} />
+                <input type="button" value="Start Conversation" className="startConversation" onClick={this.sayHi} />
+            </span>
         );
     }
 });
@@ -83,11 +87,13 @@ var MessageForm = React.createClass({
 
 var Message = React.createClass({
      render: function() {
-        var className = 'message ' + (this.props.message.delivered ? 'delivered' : 'sending');
+        var className = 'message' + (this.props.message.delivered ? ' delivered' : ' sending') + ' ' + this.props.message.wordedType();
 
-        if (!this.props.message.is_message()) return <div></div>;
+        if (!this.props.message.is_message()) return <div className={ className }></div>;
         else return (
             <div className={ className }>
+                <span className="sender"><Contact my_sid={ this.props.message.receiver() } their_sid={ this.props.message.sender() } /></span>
+                &nbsp;{ this.props.message.text }            
                 <span className="delivery status">{ this.props.message.status() }</span>
             </div>
         );
@@ -96,7 +102,7 @@ var Message = React.createClass({
 
 var Conversation = React.createClass({
     retrieveMessages: function() {
-        $serval.getConversation(this.props.conversation.my_sid, this.props.conversation.theirSid, function(result) {
+        $serval.getConversation(this.props.conversation.my_sid, this.props.conversation.their_sid, function(result) {
             if (this.isMounted()) {
                 this.setState({
                     messages: result,
@@ -121,16 +127,18 @@ var Conversation = React.createClass({
             this.scrollToBottom();
         }
     },
-    shouldComponentUpdate: function(nextProps, nextState) {
-        if (nextState.messages.length != this.state.messages.length) {
-            return true;
-        }
-        if (nextState.lastMessage.token != this.state.lastMessage.token) {
-            return true;
-        }
+    // shouldComponentUpdate: function(nextProps, nextState) {
+    //     if (nextState.messages.length != this.state.messages.length) {
+    //         return true;
+    //     }
+    //     console.log(this.state.lastMessage.serial());
+    //     console.log(nextState.lastMessage.serial());
+    //     if (this.state.lastMessage.serial() != nextState.lastMessage.serial()) {
+    //         return true;
+    //     }
 
-        return false;
-    },
+    //     return false;
+    // },
     scrollToBottom: function() {
         // console.log(this.refs.messages);
         this.refs.messages.getDOMNode().scrollTop = this.refs.messages.getDOMNode().scrollHeight;
@@ -194,29 +202,28 @@ var Identity = React.createClass({
 
 var Identities = React.createClass({
     getInitialState: function() {
-        return { identities: [] };
+        return { identity: null };
     },
 
     componentDidMount: function() {
-        $serval.getIdentities(function(result) {
+        $serval.getIdentity(function(result) {
             if (this.isMounted()) {
                 this.setState({
-                    identities: result
+                    identity: result
                 });
             }
         }.bind(this));
     },
 
      render: function() {
-            var identityNodes = this.state.identities.map(function (identity) {
-                return (
-                    <Identity key={ identity.sid } identity={ identity } />
-                );
-              });
-
-            return (
+            if (this.state.identity) return (
                 <div className="identities">
-                    { identityNodes }
+                    <Identity identity={ this.state.identity } />
+                </div>
+            );
+            else return (
+                <div className="identities">
+                    <p>No identities loaded.</p>
                 </div>
             );
      }

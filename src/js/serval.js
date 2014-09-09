@@ -25,85 +25,49 @@ var $serval = (function() {
             records.push(record);
         }
         return records;
-    }
-
-    class Message {
-        constructor(obj) {
-            this.type = obj.type;
-            this.my_sid = obj.my_sid;
-            this.their_sid = obj.their_sid;
-            this.offset = obj.offset;
-            this.token = obj.token;
-            this.text = obj.text;
-            this.delivered = obj.delivered;
-            this.read = obj.read;
-            this.timestamp = obj.timestamp;
-            this.ack_offset = obj.ack_offset;
-            this.key = obj.token;
-        }
-
-        is_message() {
-            return this.type == "<" || this.type == ">";
-        }
-
-        sender() {
-            if (this.type == "<") {
-                return this.my_sid;
-            }
-            else if (this.type == ">") {
-                return this.their_sid;
-            }
-            return undefined;
-        }
-
-        receiver() {
-            if (this.type == "<") {
-                return this.their_sid;
-            }
-            else if (this.type == ">") {
-                return this.my_sid;
-            }
-            return undefined;
-        }
-
-        status() {
-            return (this.read ? "Read" : (this.delivered ? "Delivered" : "Sending"));
-        }
-    }
+    }   
 
 
+    // Public methods are declared on the 'self' object
     var self = {};
 
-    self.getPeers = function(callback) {
+    self.getPeers = function(success, failure) {
         $http.getJson("http://localhost:4110/restful/mesh/routablepeers.json", function (status, response) {
-            callback(assembleServalJson(response));
-        });
+            success(assembleServalJson(response));
+        }, failure);
     };
 
-
-    self.getIdentities = function(callback) {
+    getIdentities = function(success, failure) {
         $http.getJson("http://localhost:4110/restful/keyring/identities.json", function (status, response) {
-            callback(assembleServalJson(response));
-        });
+            success(assembleServalJson(response));
+        }, failure);
     };
 
-    self.getConversations = function(sid, callback) {
+    self.getIdentity = function(success, failure) {
+        getIdentities(function(response) {
+            if (!response.length) failure("Could not get a valid identity from serval-dna");
+            else success(response[0]);
+        }, failure);
+    };
+
+    self.getConversations = function(sid, success, failure) {
         $http.getJson("http://localhost:4110/restful/meshms/" + escape(sid) + "/conversationlist.json", function (status, response) {
-            callback(assembleServalJson(response));
-        });
+            success(assembleServalJson(response));
+        }, failure);
     };
 
-    self.getConversation = function(mySid, theirSid, callback) {
+    self.getConversation = function(mySid, theirSid, success, failure) {
         $http.getJson("http://localhost:4110/restful/meshms/" + escape(mySid) + "/"  + escape(theirSid) + "/messagelist.json", function (status, response) {
-            callback(assembleServalJson(response).reverse().map(x => new Message(x)));
-        });
+            success(assembleServalJson(response).reverse().map(x => new ServalMessage(x)));
+        }, failure);
     };
 
-    self.sendMessage = function(mySid, theirSid, message, callback) {
+    self.sendMessage = function(mySid, theirSid, message, success, failure) {
         $http.post("http://localhost:4110/restful/meshms/" + escape(mySid) + "/"  + escape(theirSid) + "/sendmessage", { message: message }, function (status, response) {
-            callback(response);
-        });
+            success(response);
+        }, failure);
     };
 
     return self;
 })();
+    

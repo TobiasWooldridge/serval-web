@@ -1,3 +1,6 @@
+body {
+	z-index: 1;
+}
 .contactList, .conversations, .conversation {
     background: rgba(240, 240, 245, 0.2);
     border: 1px solid #ddd;
@@ -8,6 +11,10 @@
 	list-style: none inside;
 	padding: 0;
 	margin: 0;
+}
+
+.conversations input[type=button] {
+	display: none;
 }
 
 .conversation .messages {
@@ -53,5 +60,46 @@
 	background: #FFD;
 }
 
-.contact {
+.message.outbound .sender {
+	color: #3333DD;
+}
+.message.inbound .sender {
+	color: #DD3333;
+}
+
+.contact .id .name {
+	font-weight: bold;
+}
+
+.message .contact .id .name {
+	font-weight: normal;
+}
+
+.contact .id .sid, .contact .id .sid > span {
+	vertical-align: middle;
+	display: inline-block;
+	width: 6em;
+}
+
+.contact .id .sid {
+	position: relative;
+	font-family: monospace;
+	z-index: 5;
+}
+
+.contact .id .sid > span {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
+	opacity: 0.6;
+	color: #333;
+}
+
+.contact .id .sid:hover > span {
+	width: auto;
+	overflow: visible;
+	text-overflow: inherit;
+	opacity: 1;
+	background-color: #FFFFFF;
 }
