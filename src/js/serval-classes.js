@@ -14,7 +14,7 @@ class ServalMessage {
     }
 
     serialize() {
-        var obj = {}
+        var obj = {};
         obj.type = this.type;
         obj.my_sid = this.my_sid;
         obj.their_sid = this.their_sid;

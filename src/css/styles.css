@@ -1,6 +1,11 @@
 body {
 	z-index: 1;
 }
+
+.contactList, .conversations {
+	margin: 10px 0;
+}
+
 .contactList, .conversations, .conversation {
     background: rgba(240, 240, 245, 0.2);
     border: 1px solid #ddd;
@@ -18,7 +23,7 @@ body {
 }
 
 .conversation .messages {
-	max-height: 200px;
+	height: 200px;
 	overflow: scroll;
 	background: #fff;
 	border: 1px solid #ddd;
@@ -33,7 +38,6 @@ body {
 .conversation .messages, .conversation input {
 	font-size: 0.9em;
 }
-
 
 .message.sending {
 	background: #FAFAFA;

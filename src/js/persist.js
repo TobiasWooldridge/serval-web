@@ -1,38 +1,16 @@
-var $persist = (function() {
-	class ServalContact {
-	    subscribers = [];
-
-	    constructor(obj) {
-	        this.sid = obj.sid;
-	        this.name = obj.name;
-	    }
-
-	    onChange(callback) {
-	        subscribers.push(callback);
-	    }
-
-	    removeOnChange(callback) {
-	        subscribers.splice(subscribers.indexOf(callback), 1);
-	    }
-	}
-
-	var contacts  = {};
+var $convoStore = (function() {
+	var _activeConversations  = [];
+	var _oldConversations = [];
 
 	// Public methods are declared on the 'self' object
-	var self = {};
+	var $convoStore = {};
 
-	self.getContact = function(sid) {
-		if (contacts[sid] == undefined) {
-			contacts[sid] = new ServalContact({
-				sid: sid,
-				name: "Unknown"
-			});
-		}
-
-		var contact = contacts[sid];
-
-		return contact;
+	$convoStore.getActive = function() {
+		return _activeConversations;
+	};
+	$convoStore.getOld = function() {
+		return _oldConversations;
 	};
 
-	return self;
+	return $convoStore;
 })();

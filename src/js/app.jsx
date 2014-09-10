@@ -20,7 +20,7 @@ var ContactList = React.createClass({
     },
     render: function() {
         var contactNodes = this.state.contacts.map(function (contact) {
-            return <li key={ "contact-" + contact.sid }><Contact my_sid={ this.props.sid } their_sid={ contact.sid } /></li>;
+            return <li key={ "contact-" + contact.sid }><Contact their_sid={ contact.sid } /></li>;
           }.bind(this));
 
         return (
@@ -41,7 +41,7 @@ var Contact = React.createClass({
         }
     },
     sayHi: function() {
-        $serval.sendMessage(this.props.their_sid, "Hi!", function() {});
+        $serval.sendMessage(this.props.their_sid, "Hi!", function() { /* Success! */ });
     },
     getInitialState: function() {
         return {
@@ -71,7 +71,7 @@ var MessageForm = React.createClass({
         }
         this.refs.text.getDOMNode().value = '';
 
-        $serval.sendMessage(this.props.conversation.my_sid, this.props.conversation.their_sid, text, function() {});
+        $serval.sendMessage(this.props.conversation.their_sid, text, function() {});
 
         return false;
     },
@@ -92,7 +92,7 @@ var Message = React.createClass({
         if (!this.props.message.is_message()) return <div className={ className }></div>;
         else return (
             <div className={ className }>
-                <span className="sender"><Contact my_sid={ this.props.message.receiver() } their_sid={ this.props.message.sender() } /></span>
+                <span className="sender"><Contact their_sid={ this.props.message.sender() } /></span>
                 &nbsp;{ this.props.message.text }            
                 <span className="delivery status">{ this.props.message.status() }</span>
             </div>
@@ -102,7 +102,7 @@ var Message = React.createClass({
 
 var Conversation = React.createClass({
     retrieveMessages: function() {
-        $serval.getConversation(this.props.conversation.my_sid, this.props.conversation.their_sid, function(result) {
+        $serval.getConversation(this.props.conversation.their_sid, function(result) {
             if (this.isMounted()) {
                 this.setState({
                     messages: result,
@@ -150,7 +150,7 @@ var Conversation = React.createClass({
 
         return (
             <div className="conversation">
-                <Contact my_sid={ this.props.conversation.my_sid} their_sid={ this.props.conversation.their_sid} />
+                <Contact their_sid={ this.props.conversation.their_sid} />
 
                 <div className="messages" ref="messages"><ul>{ messageNodes }</ul></div>
 
@@ -161,11 +161,8 @@ var Conversation = React.createClass({
 });
 
 var Conversations = React.createClass({
-    getInitialState: function() {
-        return { conversations: [] };
-    },
-    componentDidMount: function() {
-        $serval.getConversations(this.props.sid, function(result) {
+    retrieveConversations: function() {
+        $serval.getConversations(function(result) {
             if (this.isMounted()) {
                 this.setState({
                     conversations: result
@@ -173,11 +170,20 @@ var Conversations = React.createClass({
             }
         }.bind(this));
     },
+    getInitialState: function() {
+        return { conversations: [] };
+    },
+    componentDidMount: function() {
+        this.retrieveConversations();
+        this.timer = setInterval(this.retrieveConversations, 1000);
+    },
+    componentWillUnmount: function() {
+        clearInterval(this.timer);
+    },
     render: function() {
         var conversationNodes = this.state.conversations.map(function (conversation) {
             return <li key={ conversation._id }><Conversation conversation={ conversation } /></li>;
           });
-
 
         return (
             <div className="conversations">
@@ -229,7 +235,11 @@ var Identities = React.createClass({
      }
 });
 
-React.renderComponent(
-<Identities />,
-     document.getElementById('identities')
-);
+
+var $serval;
+$servalRest.getIdentity(function(identity) {
+    $serval = ServalClient(identity);
+
+    React.renderComponent(<Identities />, document.getElementById('identities'));
+});
+    
