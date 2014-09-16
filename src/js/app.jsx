@@ -13,20 +13,22 @@ var ContactList = React.createClass({
     },
     componentDidMount: function() {
         this.retrieveContacts();
-        this.timer = setInterval(this.retrieveContacts, 2000);
+        this.timer = setInterval(this.retrieveContacts, 5000);
     },
     componentWillUnmount: function() {
         clearInterval(this.timer);
     },
     render: function() {
         var contactNodes = this.state.contacts.map(function (contact) {
-            return <li key={ "contact-" + contact.sid }><Contact their_sid={ contact.sid } /></li>;
+            return (
+                <li className="list-group-item" key={ "contact-" + contact.sid }><Contact their_sid={ contact.sid } /></li>
+            );
           }.bind(this));
 
         return (
             <div className="contactList">
                 <h2>Contact List</h2>       
-                <ul>{ contactNodes }</ul>
+                <ul className="list-group">{ contactNodes }</ul>
             </div>
         );
     }
@@ -52,12 +54,10 @@ var Contact = React.createClass({
     render: function() {
         return (
             <span className="contact">
-                <span className="id">
-                    <span ref="sid" onClick={ this.openContact } className="sid"  title={ this.state.sid }><span>{ this.state.sid }</span></span>
-                    <span ref="name" onClick={ this.openContact } className="name"> { this.state.name }</span>
-                </span>
-                <input type="button" value="Rename" className="rename" onClick={this.handleRename} />
-                <input type="button" value="Start Conversation" className="startConversation" onClick={this.sayHi} />
+                <span ref="sid" onClick={ this.openContact } className="sid"  title={ this.state.sid }><span>{ this.state.sid }</span></span>
+                <span ref="name" onClick={ this.openContact } className="name"> { this.state.name }</span>
+                <input type="button" value="Rename" className="btn btn-default rename" onClick={this.handleRename} />
+                <input type="button" value="Start Conversation" className="btn btn-primary startConversation" onClick={this.sayHi} />
             </span>
         );
     }
@@ -78,8 +78,7 @@ var MessageForm = React.createClass({
     render: function() {
            return (
                <form className="messageForm" onSubmit={ this.handleSubmit }>
-                   <input type="text" placeholder="New message..." ref="text" />
-                   <input type="submit" value="Send" />
+                   <input type="text" className="form-control" placeholder="New message..." ref="text" />
                </form>
            );
     }
@@ -89,7 +88,7 @@ var Message = React.createClass({
      render: function() {
         var className = 'message' + (this.props.message.delivered ? ' delivered' : ' sending') + ' ' + this.props.message.wordedType();
 
-        if (!this.props.message.is_message()) return <div className={ className }></div>;
+        if (!this.props.message.is_message()) return <div className={ className }><hr className="ack" /></div>;
         else return (
             <div className={ className }>
                 <span className="sender"><Contact their_sid={ this.props.message.sender() } /></span>
@@ -114,9 +113,11 @@ var Conversation = React.createClass({
     getInitialState: function() {
         return { messages: [] };
     },
+    close: function() {
+    },
     componentDidMount: function() {
         this.retrieveMessages();
-        this.timer = setInterval(this.retrieveMessages, 100);
+        this.timer = setInterval(this.retrieveMessages, 1000);
     },
     componentWillUnmount: function() {
         clearInterval(this.timer);
@@ -127,18 +128,16 @@ var Conversation = React.createClass({
             this.scrollToBottom();
         }
     },
-    // shouldComponentUpdate: function(nextProps, nextState) {
-    //     if (nextState.messages.length != this.state.messages.length) {
-    //         return true;
-    //     }
-    //     console.log(this.state.lastMessage.serial());
-    //     console.log(nextState.lastMessage.serial());
-    //     if (this.state.lastMessage.serial() != nextState.lastMessage.serial()) {
-    //         return true;
-    //     }
+    shouldComponentUpdate: function(nextProps, nextState) {
+        if (nextState.messages.length != this.state.messages.length) {
+            return true;
+        }
+        if (this.state.lastMessage.serial() != nextState.lastMessage.serial()) {
+            return true;
+        }
 
-    //     return false;
-    // },
+        return false;
+    },
     scrollToBottom: function() {
         // console.log(this.refs.messages);
         this.refs.messages.getDOMNode().scrollTop = this.refs.messages.getDOMNode().scrollHeight;
@@ -150,7 +149,10 @@ var Conversation = React.createClass({
 
         return (
             <div className="conversation">
-                <Contact their_sid={ this.props.conversation.their_sid} />
+                <header>
+                    <Contact their_sid={ this.props.conversation.their_sid} />
+                      <button type="button" className="close" onClick={ this.close }><span aria-hidden="true">&times;</span></button>
+                </header>
 
                 <div className="messages" ref="messages"><ul>{ messageNodes }</ul></div>
 
@@ -175,7 +177,7 @@ var Conversations = React.createClass({
     },
     componentDidMount: function() {
         this.retrieveConversations();
-        this.timer = setInterval(this.retrieveConversations, 1000);
+        this.timer = setInterval(this.retrieveConversations, 5000);
     },
     componentWillUnmount: function() {
         clearInterval(this.timer);
@@ -187,7 +189,6 @@ var Conversations = React.createClass({
 
         return (
             <div className="conversations">
-                <h2>Conversations</h2>
                 <ul>{ conversationNodes }</ul>
             </div>
         );
@@ -239,7 +240,10 @@ var Identities = React.createClass({
 var $serval;
 $servalRest.getIdentity(function(identity) {
     $serval = ServalClient(identity);
-
     React.renderComponent(<Identities />, document.getElementById('identities'));
+}, function() {
+    React.renderComponent((
+        <h1>Error! Could not get identities from servald. Has the service been started?</h1>
+    ), document.getElementById('identities'));
 });
     

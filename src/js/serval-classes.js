@@ -48,10 +48,10 @@ class ServalMessage {
 
     sender() {
         if (this.type == "<") {
-            return this.my_sid;
+            return this.their_sid;
         }
         else if (this.type == ">") {
-            return this.their_sid;
+            return this.my_sid;
         }
         return undefined;
     }

@@ -1,12 +1,17 @@
 var $http = (function() {
     var http = {};
 
-    http.get = function (address, callback) {
+    http.get = function (address, success, failure) {
         var xhr = new XMLHttpRequest();
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4) {
-                callback(xhr.status, xhr.response);
+                if (xhr.status == 200) {
+                    success(xhr.status, xhr.response);
+                }
+                else {
+                    failure(xhr.status);
+                }
             }
         };
 
@@ -18,18 +23,23 @@ var $http = (function() {
         xhr.send();
     };
 
-    http.getJson = function (address, callback) {
+    http.getJson = function (address, success, failure) {
         http.get(address, function(status, response) {
-            callback(status, JSON.parse(response));
-        });
+            success(status, JSON.parse(response));
+        }, failure);
     };
 
-    http.post = function (address, data, callback) {
+    http.post = function (address, data, success, failure) {
         var xhr = new XMLHttpRequest();
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4) {
-                callback(xhr.status, xhr.response);
+                if (xhr.status == 200) {
+                    success(xhr.status, xhr.response);
+                }
+                else {
+                    failure(xhr.status);
+                }
             }
         };
 

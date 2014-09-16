@@ -30,7 +30,7 @@ gulp.task('vendors', function() {
         .pipe(gulp.dest('dist/vendor/js'));
 
     gulp.src([
-        'lib/bootstrap/dist/css/*.css'])
+        'lib/bootstrap/dist/css/*.css*'])
         .pipe(gulp.dest('dist/vendor/css'))
         .pipe(connect.reload());
 });

@@ -1,16 +1,16 @@
-var $convoStore = (function() {
+var $conversationStore = (function() {
 	var _activeConversations  = [];
 	var _oldConversations = [];
 
 	// Public methods are declared on the 'self' object
-	var $convoStore = {};
+	var $conversationStore = {};
 
-	$convoStore.getActive = function() {
+	$conversationStore.getActive = function() {
 		return _activeConversations;
 	};
-	$convoStore.getOld = function() {
-		return _oldConversations;
+	$conversationStore.getClosed = function() {
+		return _closedConversations;
 	};
 
-	return $convoStore;
+	return $conversationStore;
 })();

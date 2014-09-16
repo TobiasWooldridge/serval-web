@@ -1,15 +1,26 @@
 body {
 	z-index: 1;
+	padding-bottom: 100px;
 }
 
-.contactList, .conversations {
-	margin: 10px 0;
+h1 {
+	font-size: 1.5em;
+}
+
+h2 {
+	font-size: 1.3em;
 }
 
 .contactList, .conversations, .conversation {
-    background: rgba(240, 240, 245, 0.2);
-    border: 1px solid #ddd;
-    padding: 10px 20px;
+	margin: 10px 0 20px;
+}
+
+.contactList .btn {
+	margin: 2px 5px;
+}
+
+.conversation {
+	padding: 10px 0;
 }
 
 .conversations > ul {
@@ -39,12 +50,17 @@ body {
 	font-size: 0.9em;
 }
 
+.conversation .message hr.ack {
+	margin: 2px 0;
+	border-top: 1px solid #eee;
+}
+
 .message.sending {
 	background: #FAFAFA;
 }
 .message .direction {
-    font-weight: normal;
-    opacity: 0.7;
+	font-weight: normal;
+	opacity: 0.7;
 }
 
 .message .status {
@@ -71,27 +87,27 @@ body {
 	color: #DD3333;
 }
 
-.contact .id .name {
+.contact .name {
 	font-weight: bold;
 }
 
-.message .contact .id .name {
+.message .contact .name {
 	font-weight: normal;
 }
 
-.contact .id .sid, .contact .id .sid > span {
+.contact .sid, .contact .sid > span {
 	vertical-align: middle;
 	display: inline-block;
 	width: 6em;
 }
 
-.contact .id .sid {
+.contact .sid {
 	position: relative;
 	font-family: monospace;
 	z-index: 5;
 }
 
-.contact .id .sid > span {
+.contact .sid > span {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	padding-left: 0.5em;
@@ -100,7 +116,7 @@ body {
 	color: #333;
 }
 
-.contact .id .sid:hover > span {
+.contact .sid:hover > span {
 	width: auto;
 	overflow: visible;
 	text-overflow: inherit;
