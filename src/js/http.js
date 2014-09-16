@@ -34,7 +34,7 @@ var $http = (function() {
 
         xhr.onreadystatechange = function () {
             if (xhr.readyState == 4) {
-                if (xhr.status == 200) {
+                if (200 <= xhr.status && xhr.status < 300) {
                     success(xhr.status, xhr.response);
                 }
                 else {

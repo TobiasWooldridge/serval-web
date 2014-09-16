@@ -33,6 +33,11 @@ gulp.task('vendors', function() {
         'lib/bootstrap/dist/css/*.css*'])
         .pipe(gulp.dest('dist/vendor/css'))
         .pipe(connect.reload());
+        
+    gulp.src([
+        'lib/bootstrap/dist/fonts/**'])
+        .pipe(gulp.dest('dist/vendor/fonts'))
+        .pipe(connect.reload());
 });
 
 var onError = function (err) {  

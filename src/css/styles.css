@@ -22,7 +22,6 @@ h2 {
 .conversation {
 	padding: 10px 0;
 }
-
 .conversations > ul {
 	list-style: none inside;
 	padding: 0;
@@ -32,6 +31,11 @@ h2 {
 .conversations input[type=button] {
 	display: none;
 }
+
+.conversation header .glyphicon {
+	font-size: 0.5em;
+}
+
 
 .conversation .messages {
 	height: 200px;

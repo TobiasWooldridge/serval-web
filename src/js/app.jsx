@@ -27,7 +27,7 @@ var ContactList = React.createClass({
 
         return (
             <div className="contactList">
-                <h2>Contact List</h2>       
+                <h2>Nodes I Can See</h2>       
                 <ul className="list-group">{ contactNodes }</ul>
             </div>
         );
@@ -42,8 +42,9 @@ var Contact = React.createClass({
             });
         }
     },
-    sayHi: function() {
-        $serval.sendMessage(this.props.their_sid, "Hi!", function() { /* Success! */ });
+    startConversation: function() {
+        $conversationStore.startConversation(this.state.sid);
+        $conversationStore.notify();
     },
     getInitialState: function() {
         return {
@@ -57,9 +58,27 @@ var Contact = React.createClass({
                 <span ref="sid" onClick={ this.openContact } className="sid"  title={ this.state.sid }><span>{ this.state.sid }</span></span>
                 <span ref="name" onClick={ this.openContact } className="name"> { this.state.name }</span>
                 <input type="button" value="Rename" className="btn btn-default rename" onClick={this.handleRename} />
-                <input type="button" value="Start Conversation" className="btn btn-primary startConversation" onClick={this.sayHi} />
+                <input type="button" value="Start Conversation" className="btn btn-primary startConversation" onClick={this.startConversation} />
             </span>
         );
+    }
+});
+
+var Messages = React.createClass({
+    scrollToBottom: function() {
+        this.refs.messages.getDOMNode().scrollTop = this.refs.messages.getDOMNode().scrollHeight;
+    },
+    render: function() {
+        if (!this.props.messages) this.props.messages = [];
+        
+        var messageNodes = this.props.messages.map(function (message) {
+            return <li key={ message.token }><Message message={ message } /></li>;
+        });
+
+        return (
+            <div className="messages" ref="messages"><ul>{ messageNodes }</ul></div>
+        );
+
     }
 });
 
@@ -71,7 +90,7 @@ var MessageForm = React.createClass({
         }
         this.refs.text.getDOMNode().value = '';
 
-        $serval.sendMessage(this.props.conversation.their_sid, text, function() {});
+        $serval.sendMessage(this.props.their_sid, text, function() {});
 
         return false;
     },
@@ -99,6 +118,23 @@ var Message = React.createClass({
      }
 });
 
+var ConversationHeader = React.createClass({
+    collapse: function() {
+        this.props.conversation.collapsed = !this.props.conversation.collapsed;
+        $conversationStore.notify();
+    },
+    render: function() {
+        var className = "glyphicon glyphicon-chevron-" + (this.props.conversation.collapsed ? "down" : "up");
+
+        return (
+            <header onClick={ this.collapse }>
+                <Contact their_sid={ this.props.conversation.their_sid} />
+                <button type="button" className="btn close"><span className={ className }></span></button>
+            </header>
+        );
+    }
+});
+
 var Conversation = React.createClass({
     retrieveMessages: function() {
         $serval.getConversation(this.props.conversation.their_sid, function(result) {
@@ -112,9 +148,7 @@ var Conversation = React.createClass({
     },
     getInitialState: function() {
         return { messages: [] };
-    },
-    close: function() {
-    },
+    },  
     componentDidMount: function() {
         this.retrieveMessages();
         this.timer = setInterval(this.retrieveMessages, 1000);
@@ -125,38 +159,36 @@ var Conversation = React.createClass({
     componentDidUpdate: function(prevProps, prevState) {
         // Scroll to bottom when we add a new message
         if (!prevState.lastMessage || prevState.lastMessage.timestamp < this.state.lastMessage.timestamp) {
-            this.scrollToBottom();
+            if (this.refs.messages) {
+                this.refs.messages.scrollToBottom();
+            }
         }
     },
-    shouldComponentUpdate: function(nextProps, nextState) {
-        if (nextState.messages.length != this.state.messages.length) {
-            return true;
-        }
-        if (this.state.lastMessage.serial() != nextState.lastMessage.serial()) {
-            return true;
-        }
+    // shouldComponentUpdate: function(nextProps, nextState) {
+    //     if (nextState.messages.length != this.state.messages.length) {
+    //         return true;
+    //     }
+    //     if (this.state.lastMessage.serial() != nextState.lastMessage.serial()) {
+    //         return true;
+    //     }
 
-        return false;
-    },
-    scrollToBottom: function() {
-        // console.log(this.refs.messages);
-        this.refs.messages.getDOMNode().scrollTop = this.refs.messages.getDOMNode().scrollHeight;
-    },
+    //     return false;
+    // },
     render: function() {
-        var messageNodes = this.state.messages.map(function (message) {
-            return <li key={ message.token }><Message message={ message } /></li>;
-          });
+        if (this.props.conversation.collapsed) {
+            return (
+                <div className="conversation">
+                    <ConversationHeader conversation={this.props.conversation} />
+                </div>
+            );
+        }
 
         return (
             <div className="conversation">
-                <header>
-                    <Contact their_sid={ this.props.conversation.their_sid} />
-                      <button type="button" className="close" onClick={ this.close }><span aria-hidden="true">&times;</span></button>
-                </header>
+                <ConversationHeader conversation={this.props.conversation} />
 
-                <div className="messages" ref="messages"><ul>{ messageNodes }</ul></div>
-
-                <MessageForm conversation={this.props.conversation} />
+                <Messages messages={this.state.messages} ref="messages" />
+                <MessageForm their_sid={this.props.conversation.their_sid} />
             </div>
         );
      }
@@ -164,31 +196,26 @@ var Conversation = React.createClass({
 
 var Conversations = React.createClass({
     retrieveConversations: function() {
-        $serval.getConversations(function(result) {
-            if (this.isMounted()) {
-                this.setState({
-                    conversations: result
-                });
-            }
-        }.bind(this));
+        this.setState({ conversations: $conversationStore.getConversations() });   
     },
     getInitialState: function() {
         return { conversations: [] };
     },
     componentDidMount: function() {
         this.retrieveConversations();
-        this.timer = setInterval(this.retrieveConversations, 5000);
+        this.subscription = $conversationStore.subscribe(this.retrieveConversations);
     },
     componentWillUnmount: function() {
-        clearInterval(this.timer);
+        $conversationStore.unsubscribe(this.subscription);
     },
     render: function() {
         var conversationNodes = this.state.conversations.map(function (conversation) {
-            return <li key={ conversation._id }><Conversation conversation={ conversation } /></li>;
+            return <li key={ conversation.their_sid + conversation.collapsed }><Conversation conversation={ conversation } /></li>;
           });
 
         return (
             <div className="conversations">
+                <h2>Conversations</h2>
                 <ul>{ conversationNodes }</ul>
             </div>
         );
