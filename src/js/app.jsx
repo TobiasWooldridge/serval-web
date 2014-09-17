@@ -27,7 +27,7 @@ var ContactList = React.createClass({
 
         return (
             <div className="contactList">
-                <h2>Nodes I Can See</h2>       
+                <h2>Peers</h2>       
                 <ul className="list-group">{ contactNodes }</ul>
             </div>
         );
@@ -36,27 +36,34 @@ var ContactList = React.createClass({
 
 var Contact = React.createClass({
     handleRename: function() {
-        if (this.isMounted()) {
-            this.setState({
-                name: "Mooo"
-            });
-        }
+        this.state.contact.name = "Nexus 5";
+        $contactStore.notify();
+    },
+    retrieveContact: function() {
+        this.setState({
+            contact: $contactStore.getContact(this.props.their_sid)
+        });
     },
     startConversation: function() {
-        $conversationStore.startConversation(this.state.sid);
+        $conversationStore.startConversation(this.state.contact.sid);
         $conversationStore.notify();
     },
     getInitialState: function() {
         return {
-            name: "Unknown",
-            sid: this.props.their_sid
+            contact: $contactStore.getContact(this.props.their_sid)
         };
+    },
+    componentDidMount: function() {
+        this.subscription = $contactStore.subscribe(this.retrieveContact);
+    },
+    componentWillUnmount: function() {
+        $contactStore.unsubscribe(this.subscription);
     },
     render: function() {
         return (
             <span className="contact">
-                <span ref="sid" onClick={ this.openContact } className="sid"  title={ this.state.sid }><span>{ this.state.sid }</span></span>
-                <span ref="name" onClick={ this.openContact } className="name"> { this.state.name }</span>
+                <span ref="sid" onClick={ this.openContact } className="sid"  title={ this.state.contact.sid }><span>{ this.state.contact.sid }</span></span>
+                <span ref="name" onClick={ this.openContact } className="name"> { this.state.contact.name }</span>
                 <input type="button" value="Rename" className="btn btn-default rename" onClick={this.handleRename} />
                 <input type="button" value="Start Conversation" className="btn btn-primary startConversation" onClick={this.startConversation} />
             </span>
@@ -69,11 +76,12 @@ var Messages = React.createClass({
         this.refs.messages.getDOMNode().scrollTop = this.refs.messages.getDOMNode().scrollHeight;
     },
     render: function() {
-        if (!this.props.messages) this.props.messages = [];
-        
-        var messageNodes = this.props.messages.map(function (message) {
-            return <li key={ message.token }><Message message={ message } /></li>;
-        });
+        var messageNodes = [];
+        if (this.props.messages) {
+            messageNodes = this.props.messages.map(function (message) {
+                return <li key={ message.token }><Message message={ message } /></li>;
+            });
+        }
 
         return (
             <div className="messages" ref="messages"><ul>{ messageNodes }</ul></div>
@@ -137,6 +145,8 @@ var ConversationHeader = React.createClass({
 
 var Conversation = React.createClass({
     retrieveMessages: function() {
+        if (this.props.conversation.collapsed) return;
+
         $serval.getConversation(this.props.conversation.their_sid, function(result) {
             if (this.isMounted()) {
                 this.setState({
@@ -266,6 +276,10 @@ var Identities = React.createClass({
 
 var $serval;
 $servalRest.getIdentity(function(identity) {
+    var me = $contactStore.getContact(identity.sid);
+    me.name = "Me";
+    $contactStore.notify();
+
     $serval = ServalClient(identity);
     React.renderComponent(<Identities />, document.getElementById('identities'));
 }, function() {
